@@ -1,9 +1,11 @@
 "use client"
 
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 type Symbol = string
 type GameState = {
@@ -29,8 +31,8 @@ const SYMBOLS = [
 ]
 
 export default function GameContent() {
-  const searchParams = useSearchParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const size = Number.parseInt(searchParams.get("size") || "4")
   const numDifferences = Number.parseInt(searchParams.get("differences") || "3")
 
@@ -90,8 +92,41 @@ export default function GameContent() {
     }
   }
 
-  const handleReset = () => {
-    router.push("/")
+  const handlePlayAgain = () => {
+    setGameWon(false)
+    setFoundCount(0)
+    // Trigger re-initialization by updating game state
+    const matrix1: Symbol[][] = Array.from({ length: size }, () =>
+      Array.from({ length: size }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]),
+    )
+
+    // Deep copy for matrix2
+    const matrix2 = matrix1.map((row) => [...row])
+
+    // Create differences
+    const differences = new Set<string>()
+    const diffSet = new Set<number>()
+    while (diffSet.size < numDifferences) {
+      const randomIdx = Math.floor(Math.random() * (size * size))
+      if (!diffSet.has(randomIdx)) {
+        diffSet.add(randomIdx)
+        const row = Math.floor(randomIdx / size)
+        const col = randomIdx % size
+        let randomSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
+        while (randomSymbol === matrix2[row][col]) {
+          randomSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]
+        }
+        matrix2[row][col] = randomSymbol
+        differences.add(`${row}-${col}`)
+      }
+    }
+
+    setGameState({
+      matrix1,
+      matrix2,
+      differences,
+      found: new Set(),
+    })
   }
 
   if (!gameState) return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10" />
@@ -100,28 +135,39 @@ export default function GameContent() {
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary mb-2">Find the Differences</h1>
-          <p className="text-lg text-foreground">
-            Found: <span className="font-bold text-accent">{foundCount}</span> / {gameState.differences.size}
-          </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex-1 text-center">
+            <h1 className="text-3xl font-bold text-primary mb-2">Find the Differences</h1>
+            <p className="text-lg text-foreground">
+              Found: <span className="font-bold text-accent">{foundCount}</span> / {gameState.differences.size}
+            </p>
+          </div>
+          <Button onClick={() => router.push("/")} variant="outline" className="ml-4">
+            ⚙️
+          </Button>
         </div>
 
-        {/* Game Won Message */}
-        {gameWon && (
-          <Card className="bg-gradient-to-r from-accent to-secondary p-6 text-center border-2 border-accent">
-            <h2 className="text-2xl font-bold text-foreground mb-4">🎉 You Won! 🎉</h2>
-            <p className="text-foreground mb-4">You found all the differences!</p>
-            <Button onClick={handleReset} className="bg-primary hover:bg-primary/90">
-              Play Again
-            </Button>
-          </Card>
-        )}
+        <Dialog open={gameWon} onOpenChange={setGameWon}>
+          <DialogContent className="bg-gradient-to-r from-accent to-secondary border-2 border-accent">
+            <DialogHeader>
+              <DialogTitle className="text-2xl text-foreground">🎉 You Won! 🎉</DialogTitle>
+              <DialogDescription className="text-foreground">You found all the differences!</DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-3 justify-center pt-4">
+              <Button onClick={handlePlayAgain} className="bg-primary hover:bg-primary/90">
+                Play Again
+              </Button>
+              <Button onClick={() => router.push("/")} variant="outline">
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Matrices Container */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Matrix 1 - Read Only */}
-          <Card className="p-6">
+          <Card className="p-3 border-0 w-fit mx-auto px-8">
             <h3 className="text-center font-bold text-foreground mb-4">Original</h3>
             <div className="flex justify-center">
               <div
@@ -135,7 +181,7 @@ export default function GameContent() {
                   row.map((symbol, colIdx) => (
                     <div
                       key={`m1-${rowIdx}-${colIdx}`}
-                      className="flex items-center justify-center w-12 h-12 bg-card border-2 border-border rounded-lg text-lg font-bold text-foreground"
+                      className="flex items-center justify-center bg-card border-border rounded-lg text-lg font-bold text-foreground border-0 size-8"
                     >
                       {symbol}
                     </div>
@@ -146,7 +192,7 @@ export default function GameContent() {
           </Card>
 
           {/* Matrix 2 - Interactive */}
-          <Card className="p-6">
+          <Card className="p-3 w-fit mx-auto px-8">
             <h3 className="text-center font-bold text-foreground mb-4">Find Differences</h3>
             <div className="flex justify-center">
               <div
@@ -167,7 +213,7 @@ export default function GameContent() {
                         key={`m2-${rowIdx}-${colIdx}`}
                         onClick={() => handleCellClick(rowIdx, colIdx)}
                         disabled={isFound}
-                        className={`flex items-center justify-center w-12 h-12 rounded-lg text-lg font-bold transition-all ${
+                        className={`flex items-center justify-center rounded-lg text-lg font-bold transition-all border-0 leading-7 border-card size-8 ${
                           isFound
                             ? "bg-accent text-accent-foreground ring-2 ring-accent shadow-lg scale-105"
                             : "bg-card border-2 border-border text-foreground hover:border-primary hover:shadow-md cursor-pointer"
@@ -181,17 +227,6 @@ export default function GameContent() {
               </div>
             </div>
           </Card>
-        </div>
-
-        {/* Reset Button */}
-        <div className="text-center">
-          <Button
-            onClick={handleReset}
-            variant="outline"
-            className="border-primary text-primary hover:bg-primary/10 bg-transparent"
-          >
-            Back to Setup
-          </Button>
         </div>
       </div>
     </div>
