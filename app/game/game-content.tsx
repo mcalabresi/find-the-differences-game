@@ -148,7 +148,10 @@ export default function GameContent() {
         </div>
 
         <Dialog open={gameWon} onOpenChange={setGameWon}>
-          <DialogContent className="bg-gradient-to-r from-accent to-secondary border-2 border-accent">
+          <DialogContent
+            className="bg-gradient-to-r from-accent to-secondary border-2 border-accent"
+            onPointerDownOutside={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle className="text-2xl text-foreground">🎉 You Won! 🎉</DialogTitle>
               <DialogDescription className="text-foreground">You found all the differences!</DialogDescription>
