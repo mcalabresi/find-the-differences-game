@@ -10,7 +10,7 @@ export default function Home() {
   const [matrixSize, setMatrixSize] = useState(4)
   const [numDifferences, setNumDifferences] = useState(3)
 
-  const maxDifferences = matrixSize * matrixSize - 1
+  const maxDifferences = Math.floor((matrixSize ** 2)/2) 
 
   const handlePlay = () => {
     router.push(`/game?size=${matrixSize}&differences=${numDifferences}`)
@@ -31,7 +31,7 @@ export default function Home() {
                 {[3, 4, 5, 6, 8].map((size) => (
                   <button
                     key={size}
-                    onClick={() => setMatrixSize(size)}
+                    onClick={() => {setMatrixSize(size);  setNumDifferences(3)}}
                     className={`flex-1 py-2 rounded-lg font-medium transition-all ${
                       matrixSize === size
                         ? "bg-primary text-primary-foreground shadow-lg"

@@ -39,6 +39,7 @@ export default function GameContent() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [foundCount, setFoundCount] = useState(0)
   const [gameWon, setGameWon] = useState(false)
+  const [gridWidth, setGridWidth] = useState<number>(0)
 
   // Initialize game
   useEffect(() => {
@@ -74,6 +75,28 @@ export default function GameContent() {
       found: new Set(),
     })
   }, [size, numDifferences])
+
+  useEffect(() => {
+    const calculateGridWidth = () => {
+      const clientWidth = document.documentElement.clientWidth
+      const clientHeight = document.documentElement.clientHeight
+
+      let calculatedWidth: number
+      if (clientWidth > clientHeight) {
+        // Landscape: clientWidth / (2 * size + 4)
+        calculatedWidth = clientWidth / (2 * size + 4)
+      } else {
+        // Portrait: clientWidth / (size + 2)
+        calculatedWidth = clientWidth / (size + 2)
+      }
+
+      setGridWidth(calculatedWidth)
+    }
+
+    calculateGridWidth()
+    window.addEventListener("resize", calculateGridWidth)
+    return () => window.removeEventListener("resize", calculateGridWidth)
+  }, [size])
 
   const handleCellClick = (row: number, col: number) => {
     if (!gameState) return
@@ -132,8 +155,8 @@ export default function GameContent() {
   if (!gameState) return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10" />
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-2 md:p-4">
+      <div className="space-y-6 mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex-1 text-center">
@@ -151,6 +174,7 @@ export default function GameContent() {
           <DialogContent
             className="bg-gradient-to-r from-accent to-secondary border-2 border-accent"
             onPointerDownOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
           >
             <DialogHeader>
               <DialogTitle className="text-2xl text-foreground">🎉 You Won! 🎉</DialogTitle>
@@ -160,31 +184,34 @@ export default function GameContent() {
               <Button onClick={handlePlayAgain} className="bg-primary hover:bg-primary/90">
                 Play Again
               </Button>
-              <Button onClick={() => router.push("/")} variant="outline">
-                Close
-              </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* Matrices Container */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-2 lg:px-4 overflow-hidden">
           {/* Matrix 1 - Read Only */}
-          <Card className="p-3 border-0 w-fit mx-auto px-8">
+          <Card className="border-0 p-3 flex flex-col items-center overflow-x-auto">
             <h3 className="text-center font-bold text-foreground mb-4">Original</h3>
-            <div className="flex justify-center">
+            <div className="flex justify-center min-w-0">
               <div
                 className="gap-1"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${size}, 1fr)`,
+                  width: `${gridWidth * size + (size - 1) * 4}px`,
                 }}
               >
                 {gameState.matrix1.map((row, rowIdx) =>
                   row.map((symbol, colIdx) => (
                     <div
                       key={`m1-${rowIdx}-${colIdx}`}
-                      className="flex items-center justify-center bg-card border-border rounded-lg text-lg font-bold text-foreground border-0 size-8"
+                      className="flex items-center justify-center bg-card border-border rounded-lg font-bold text-foreground border-0 aspect-square"
+                      style={{
+                        width: `${gridWidth}px`,
+                        height: `${gridWidth}px`,
+                        fontSize: `${Math.max(12, gridWidth * 0.5)}px`,
+                      }}
                     >
                       {symbol}
                     </div>
@@ -195,14 +222,15 @@ export default function GameContent() {
           </Card>
 
           {/* Matrix 2 - Interactive */}
-          <Card className="p-3 w-fit mx-auto px-8">
+          <Card className="p-3 flex flex-col items-center overflow-x-auto">
             <h3 className="text-center font-bold text-foreground mb-4">Find Differences</h3>
-            <div className="flex justify-center">
+            <div className="flex justify-center min-w-0">
               <div
                 className="gap-1"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${size}, 1fr)`,
+                  width: `${gridWidth * size + (size - 1) * 4}px`,
                 }}
               >
                 {gameState.matrix2.map((row, rowIdx) =>
@@ -216,11 +244,16 @@ export default function GameContent() {
                         key={`m2-${rowIdx}-${colIdx}`}
                         onClick={() => handleCellClick(rowIdx, colIdx)}
                         disabled={isFound}
-                        className={`flex items-center justify-center rounded-lg text-lg font-bold transition-all border-0 leading-7 border-card size-8 ${
+                        className={`flex items-center justify-center rounded-lg font-bold transition-all border-0 leading-none ${
                           isFound
                             ? "bg-accent text-accent-foreground ring-2 ring-accent shadow-lg scale-105"
                             : "bg-card border-2 border-border text-foreground hover:border-primary hover:shadow-md cursor-pointer"
                         }`}
+                        style={{
+                          width: `${gridWidth}px`,
+                          height: `${gridWidth}px`,
+                          fontSize: `${Math.max(12, gridWidth * 0.5)}px`,
+                        }}
                       >
                         {symbol}
                       </button>
