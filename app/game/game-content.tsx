@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -15,31 +15,73 @@ type GameState = {
   found: Set<string>
 }
 
-const SYMBOLS = [
-  ...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)), // A-Z
-  ...Array.from({ length: 10 }, (_, i) => i.toString()), // 0-9
-  "😀",
-  "😂",
-  "🎉",
-  "🚀",
-  "💡",
-  "🎨",
-  "⭐",
-  "🌟",
-  "💎",
-  "🎭",
-]
+const buildSymbolsArray = (useLetters: boolean, useNumbers: boolean, useEmojis: boolean): string[] => {
+  const symbols: string[] = []
+
+  if (useLetters) {
+    symbols.push(...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)))
+  }
+
+  if (useNumbers) {
+    symbols.push(...Array.from({ length: 10 }, (_, i) => i.toString()))
+  }
+
+  if (useEmojis) {
+    symbols.push(
+      "😀",
+      "😂",
+      "🎉",
+      "🚀",
+      "💡",
+      "🎨",
+      "⭐",
+      "🌟",
+      "💎",
+      "🎭",
+      "🎪",
+      "🎸",
+      "🎮",
+      "🍕",
+      "🍔",
+      "🐶",
+      "🐱",
+      "🦁",
+      "🐘",
+      "🦋",
+      "🌈",
+      "🔥",
+      "❄️",
+      "⚡",
+      "🌸",
+      "🌺",
+      "🍎",
+      "🍊",
+      "🍋",
+      "🍌",
+    )
+  }
+
+  return symbols
+}
 
 export default function GameContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const size = Number.parseInt(searchParams.get("size") || "4")
   const numDifferences = Number.parseInt(searchParams.get("differences") || "3")
+  const useLetters = searchParams.get("letters") !== "false"
+  const useNumbers = searchParams.get("numbers") !== "false"
+  const useEmojis = searchParams.get("emojis") !== "false"
 
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [foundCount, setFoundCount] = useState(0)
   const [gameWon, setGameWon] = useState(false)
   const [gridWidth, setGridWidth] = useState<number>(0)
+
+  const SYMBOLS = useMemo(
+    () => buildSymbolsArray(useLetters, useNumbers, useEmojis),
+    [useLetters, useNumbers, useEmojis],
+  )
 
   // Initialize game
   useEffect(() => {
@@ -74,7 +116,7 @@ export default function GameContent() {
       differences,
       found: new Set(),
     })
-  }, [size, numDifferences])
+  }, [size, numDifferences, SYMBOLS])
 
   useEffect(() => {
     const calculateGridWidth = () => {
@@ -158,31 +200,32 @@ export default function GameContent() {
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-2 md:p-4">
       <div className="space-y-6 mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex-1 text-center">
-            <h1 className="text-3xl font-bold text-primary mb-2">Find the Differences</h1>
-            <p className="text-lg text-foreground">
-              Found: <span className="font-bold text-accent">{foundCount}</span> / {gameState.differences.size}
-            </p>
-          </div>
-          <Button onClick={() => router.push("/")} variant="outline" className="ml-4">
+        <div className="flex items-center justify-between mb-6 px-2 lg:px-4">
+          <h1 className="text-2xl font-bold text-primary">Find the Differences</h1>
+          <p className="text-lg text-foreground mx-4">
+            Found: <span className="font-bold text-accent">{foundCount}</span> / {gameState.differences.size}
+          </p>
+          <Button onClick={() => router.push("/")} variant="outline">
             ⚙️
           </Button>
         </div>
 
         <Dialog open={gameWon} onOpenChange={setGameWon}>
           <DialogContent
-            className="bg-gradient-to-r from-accent to-secondary border-2 border-accent"
+            className="bg-gradient-to-r from-green-300 to-green-400 border-2 text-center border-green-400"
             onPointerDownOutside={(e) => e.preventDefault()}
             onEscapeKeyDown={(e) => e.preventDefault()}
           >
-            <DialogHeader>
-              <DialogTitle className="text-2xl text-foreground">🎉 You Won! 🎉</DialogTitle>
-              <DialogDescription className="text-foreground">You found all the differences!</DialogDescription>
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-2xl text-foreground justify-center text-center">🎉 You Won! 🎉</DialogTitle>
+              <DialogDescription className="text-foreground text-center">You found all the differences!</DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 justify-center pt-4">
-              <Button onClick={handlePlayAgain} className="bg-primary hover:bg-primary/90">
+              <Button onClick={handlePlayAgain} className="hover:bg-primary/90 bg-secondary">
                 Play Again
+              </Button>
+              <Button onClick={() => router.push("/")} className="hover:bg-secondary/90 bg-chart-4">
+                Close
               </Button>
             </div>
           </DialogContent>
@@ -191,8 +234,7 @@ export default function GameContent() {
         {/* Matrices Container */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-2 lg:px-4 overflow-hidden">
           {/* Matrix 1 - Read Only */}
-          <Card className="border-0 p-3 flex flex-col items-center overflow-x-auto">
-            <h3 className="text-center font-bold text-foreground mb-4">Original</h3>
+          <Card className="p-6 flex flex-col items-center overflow-x-auto px-6 border">
             <div className="flex justify-center min-w-0">
               <div
                 className="gap-1"
@@ -222,8 +264,7 @@ export default function GameContent() {
           </Card>
 
           {/* Matrix 2 - Interactive */}
-          <Card className="p-3 flex flex-col items-center overflow-x-auto">
-            <h3 className="text-center font-bold text-foreground mb-4">Find Differences</h3>
+          <Card className="p-6 flex flex-col items-center overflow-x-auto">
             <div className="flex justify-center min-w-0">
               <div
                 className="gap-1"

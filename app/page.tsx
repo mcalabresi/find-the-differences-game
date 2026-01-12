@@ -11,13 +11,22 @@ export default function Home() {
   const [matrixSize, setMatrixSize] = useState(4)
   const [numDifferences, setNumDifferences] = useState(3)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [useLetters, setUseLetters] = useState(true)
+  const [useNumbers, setUseNumbers] = useState(true)
+  const [useEmojis, setUseEmojis] = useState(true)
 
   useEffect(() => {
     const savedSize = localStorage.getItem("gameMatrixSize")
     const savedDifferences = localStorage.getItem("gameNumDifferences")
+    const savedLetters = localStorage.getItem("gameUseLetters")
+    const savedNumbers = localStorage.getItem("gameUseNumbers")
+    const savedEmojis = localStorage.getItem("gameUseEmojis")
 
     if (savedSize) setMatrixSize(Number.parseInt(savedSize))
     if (savedDifferences) setNumDifferences(Number.parseInt(savedDifferences))
+    if (savedLetters !== null) setUseLetters(JSON.parse(savedLetters))
+    if (savedNumbers !== null) setUseNumbers(JSON.parse(savedNumbers))
+    if (savedEmojis !== null) setUseEmojis(JSON.parse(savedEmojis))
   }, [])
 
   useEffect(() => {
@@ -28,10 +37,24 @@ export default function Home() {
     localStorage.setItem("gameNumDifferences", numDifferences.toString())
   }, [numDifferences])
 
+  useEffect(() => {
+    localStorage.setItem("gameUseLetters", JSON.stringify(useLetters))
+  }, [useLetters])
+
+  useEffect(() => {
+    localStorage.setItem("gameUseNumbers", JSON.stringify(useNumbers))
+  }, [useNumbers])
+
+  useEffect(() => {
+    localStorage.setItem("gameUseEmojis", JSON.stringify(useEmojis))
+  }, [useEmojis])
+
   const maxDifferences = Math.floor(matrixSize ** 2 / 2)
 
   const handlePlay = () => {
-    router.push(`/game?size=${matrixSize}&differences=${numDifferences}`)
+    router.push(
+      `/game?size=${matrixSize}&differences=${numDifferences}&letters=${useLetters}&numbers=${useNumbers}&emojis=${useEmojis}`,
+    )
   }
 
   return (
@@ -44,7 +67,6 @@ export default function Home() {
             alt="Detective character with magnifying glass"
             className="w-48 h-48 mx-auto mb-6 rounded-lg"
           />
-          <p className="text-muted-foreground mb-8">Spot all the differences between the two matrices!</p>
 
           <div className="space-y-4">
             {/* Play Button */}
@@ -58,6 +80,8 @@ export default function Home() {
             <Button onClick={() => setIsSettingsOpen(true)} variant="outline" className="w-full py-6 text-lg font-bold">
               Settings
             </Button>
+
+            <p className="text-xs text-muted-foreground mt-4">© 2026 Marcello Calabresi</p>
           </div>
         </div>
       </Card>
@@ -104,6 +128,39 @@ export default function Home() {
               />
               <div className="text-center text-sm text-muted-foreground">
                 {numDifferences} / {maxDifferences} differences
+              </div>
+            </div>
+
+            <div className="space-y-3 border-t pt-4">
+              <label className="block text-sm font-medium text-foreground">Symbols</label>
+              <div className="flex gap-4 flex-wrap">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useLetters}
+                    onChange={(e) => setUseLetters(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm text-foreground">Letters (A-Z)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useNumbers}
+                    onChange={(e) => setUseNumbers(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm text-foreground">Numbers (0-9)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useEmojis}
+                    onChange={(e) => setUseEmojis(e.target.checked)}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm text-foreground">Emojis</span>
+                </label>
               </div>
             </div>
 
