@@ -196,12 +196,13 @@ export default function GameContent() {
       setErrorCell(key)
       setTimeout(() => setErrorCell(null), 500)
 
-      // Count errors in all modes
-      const newErrorCount = errorCount + 1
-      setErrorCount(newErrorCount)
+      if (gameMode !== "Zen") {
+        const newErrorCount = errorCount + 1
+        setErrorCount(newErrorCount)
 
-      if (numErrors > 0 && newErrorCount >= numErrors) {
-        setGameLost(true)
+        if (numErrors > 0 && newErrorCount >= numErrors) {
+          setGameLost(true)
+        }
       }
       return
     }
