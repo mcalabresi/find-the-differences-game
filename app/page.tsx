@@ -14,6 +14,10 @@ export default function Home() {
   const [useLetters, setUseLetters] = useState(true)
   const [useNumbers, setUseNumbers] = useState(true)
   const [useEmojis, setUseEmojis] = useState(true)
+  const [useSounds, setUseSounds] = useState(true)
+  const [numErrors, setNumErrors] = useState(3)
+  const [gameMode, setGameMode] = useState<"Zen" | "Normal" | "TimeChallenge">("Normal")
+  const [timeLimit, setTimeLimit] = useState(60)
 
   useEffect(() => {
     const savedSize = localStorage.getItem("gameMatrixSize")
@@ -21,12 +25,20 @@ export default function Home() {
     const savedLetters = localStorage.getItem("gameUseLetters")
     const savedNumbers = localStorage.getItem("gameUseNumbers")
     const savedEmojis = localStorage.getItem("gameUseEmojis")
+    const savedSounds = localStorage.getItem("gameUseSounds")
+    const savedErrors = localStorage.getItem("gameNumErrors")
+    const savedGameMode = localStorage.getItem("gameMode")
+    const savedTimeLimit = localStorage.getItem("gameTimeLimit")
 
     if (savedSize) setMatrixSize(Number.parseInt(savedSize))
     if (savedDifferences) setNumDifferences(Number.parseInt(savedDifferences))
     if (savedLetters !== null) setUseLetters(JSON.parse(savedLetters))
     if (savedNumbers !== null) setUseNumbers(JSON.parse(savedNumbers))
     if (savedEmojis !== null) setUseEmojis(JSON.parse(savedEmojis))
+    if (savedSounds !== null) setUseSounds(JSON.parse(savedSounds))
+    if (savedErrors) setNumErrors(Number.parseInt(savedErrors))
+    if (savedGameMode) setGameMode(savedGameMode as "Zen" | "Normal" | "TimeChallenge")
+    if (savedTimeLimit) setTimeLimit(Number.parseInt(savedTimeLimit))
   }, [])
 
   useEffect(() => {
@@ -49,11 +61,29 @@ export default function Home() {
     localStorage.setItem("gameUseEmojis", JSON.stringify(useEmojis))
   }, [useEmojis])
 
+  useEffect(() => {
+    localStorage.setItem("gameUseSounds", JSON.stringify(useSounds))
+  }, [useSounds])
+
+  useEffect(() => {
+    localStorage.setItem("gameNumErrors", numErrors.toString())
+  }, [numErrors])
+
+  useEffect(() => {
+    localStorage.setItem("gameMode", gameMode)
+  }, [gameMode])
+
+  useEffect(() => {
+    localStorage.setItem("gameTimeLimit", timeLimit.toString())
+  }, [timeLimit])
+
   const maxDifferences = Math.floor(matrixSize ** 2 / 2)
+
+  const enabledSymbolCount = [useLetters, useNumbers, useEmojis].filter(Boolean).length
 
   const handlePlay = () => {
     router.push(
-      `/game?size=${matrixSize}&differences=${numDifferences}&letters=${useLetters}&numbers=${useNumbers}&emojis=${useEmojis}`,
+      `/game?size=${matrixSize}&differences=${numDifferences}&letters=${useLetters}&numbers=${useNumbers}&emojis=${useEmojis}&sounds=${useSounds}&errors=${numErrors}&mode=${gameMode}&timeLimit=${timeLimit}`,
     )
   }
 
@@ -69,7 +99,25 @@ export default function Home() {
           />
 
           <div className="space-y-4">
-            {/* Play Button */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">Game Mode</label>
+              <div className="flex gap-2">
+                {["Zen", "Normal", "TimeChallenge"].map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setGameMode(mode as "Zen" | "Normal" | "TimeChallenge")}
+                    className={`flex-1 py-2 rounded-lg font-medium transition-all ${
+                      gameMode === mode
+                        ? "bg-green-500 text-white shadow-lg"
+                        : "bg-white text-foreground border-2 border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    {mode === "TimeChallenge" ? "⏲️ Time Challenge" : (mode === "Zen" ? "😎 Zen" : mode) }
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Button
               onClick={handlePlay}
               className="w-full py-6 text-lg font-bold bg-gradient-to-r from-primary to-accent hover:shadow-lg transition-shadow"
@@ -92,7 +140,6 @@ export default function Home() {
             <DialogTitle>Game Settings</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
-            {/* Matrix Size Selector */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">Matrix Size</label>
               <div className="flex gap-2">
@@ -115,8 +162,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Number of Differences Selector */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-foreground">Number of Differences</label>
               <input
                 type="range"
@@ -131,6 +177,45 @@ export default function Home() {
               </div>
             </div>
 
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-foreground">Number of Errors</label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={numErrors}
+                onChange={(e) => setNumErrors(Number.parseInt(e.target.value))}
+                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-red-500"
+              />
+              <div className="text-center text-sm text-muted-foreground">{numErrors} / 10 errors allowed</div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-foreground">Time Limit (seconds)</label>
+              <input
+                type="range"
+                min="5"
+                max="120"
+                step="5"
+                value={timeLimit}
+                onChange={(e) => setTimeLimit(Number.parseInt(e.target.value))}
+                className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              <div className="text-center text-sm text-muted-foreground">{timeLimit} seconds</div>
+            </div>
+
+            <div className="space-y-2 border-t pt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useSounds}
+                  onChange={(e) => setUseSounds(e.target.checked)}
+                  className="w-4 h-4 rounded"
+                />
+                <span className="text-sm font-medium text-foreground">Sounds</span>
+              </label>
+            </div>
+
             <div className="space-y-3 border-t pt-4">
               <label className="block text-sm font-medium text-foreground">Symbols</label>
               <div className="flex gap-4 flex-wrap">
@@ -139,7 +224,8 @@ export default function Home() {
                     type="checkbox"
                     checked={useLetters}
                     onChange={(e) => setUseLetters(e.target.checked)}
-                    className="w-4 h-4 rounded"
+                    disabled={useLetters && enabledSymbolCount === 1}
+                    className="w-4 h-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <span className="text-sm text-foreground">Letters (A-Z)</span>
                 </label>
@@ -148,7 +234,8 @@ export default function Home() {
                     type="checkbox"
                     checked={useNumbers}
                     onChange={(e) => setUseNumbers(e.target.checked)}
-                    className="w-4 h-4 rounded"
+                    disabled={useNumbers && enabledSymbolCount === 1}
+                    className="w-4 h-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <span className="text-sm text-foreground">Numbers (0-9)</span>
                 </label>
@@ -157,16 +244,13 @@ export default function Home() {
                     type="checkbox"
                     checked={useEmojis}
                     onChange={(e) => setUseEmojis(e.target.checked)}
-                    className="w-4 h-4 rounded"
+                    disabled={useEmojis && enabledSymbolCount === 1}
+                    className="w-4 h-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <span className="text-sm text-foreground">Emojis</span>
                 </label>
               </div>
             </div>
-
-            <Button onClick={() => setIsSettingsOpen(false)} className="w-full">
-              Close
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

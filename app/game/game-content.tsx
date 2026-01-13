@@ -69,14 +69,52 @@ export default function GameContent() {
   const searchParams = useSearchParams()
   const size = Number.parseInt(searchParams.get("size") || "4")
   const numDifferences = Number.parseInt(searchParams.get("differences") || "3")
+  const numErrors = Number.parseInt(searchParams.get("errors") || "3")
   const useLetters = searchParams.get("letters") !== "false"
   const useNumbers = searchParams.get("numbers") !== "false"
   const useEmojis = searchParams.get("emojis") !== "false"
+  const useSounds = searchParams.get("sounds") !== "false"
+  const gameMode = (searchParams.get("mode") || "Normal") as "Zen" | "Normal" | "TimeChallenge"
+  const timeLimit = Number.parseInt(searchParams.get("timeLimit") || "60")
 
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [foundCount, setFoundCount] = useState(0)
+  const [errorCount, setErrorCount] = useState(0)
   const [gameWon, setGameWon] = useState(false)
+  const [gameLost, setGameLost] = useState(false)
   const [gridWidth, setGridWidth] = useState<number>(0)
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null)
+  const [victoryAudio, setVictoryAudio] = useState<HTMLAudioElement | null>(null)
+  const [errorAudio, setErrorAudio] = useState<HTMLAudioElement | null>(null)
+  const [errorCell, setErrorCell] = useState<string | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState(timeLimit)
+
+  useEffect(() => {
+    const audioElement = new Audio("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/correct-IPaMrjsFEJ9kqYNPOGBow7AmUb81N4.mp3")
+    setAudio(audioElement)
+
+    const victoryAudioElement = new Audio("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/victory-L467P0DmZCnSmbVcrRqoOEsndA6Ree.mp3")
+    setVictoryAudio(victoryAudioElement)
+
+    const errorAudioElement = new Audio("https://hebbkx1anhila5yf.public.blob.vercel-storage.com/wrong_answer-ja2dIoM4JBHwzEFDw83ZXj4r3eNp0l.mp3")
+    setErrorAudio(errorAudioElement)
+  }, [])
+
+  useEffect(() => {
+    if (gameMode !== "TimeChallenge" || gameWon || gameLost) return
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setGameLost(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [gameMode, gameWon, gameLost])
 
   const SYMBOLS = useMemo(
     () => buildSymbolsArray(useLetters, useNumbers, useEmojis),
@@ -144,23 +182,69 @@ export default function GameContent() {
     if (!gameState) return
     const key = `${row}-${col}`
 
+    if (gameState.matrix1[row][col] === gameState.matrix2[row][col]) {
+      if (useSounds && errorAudio) {
+        errorAudio.currentTime = 0
+        const playPromise = errorAudio.play()
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.log("[v0] Error audio play failed:", error)
+          })
+        }
+      }
+      // Trigger error animation
+      setErrorCell(key)
+      setTimeout(() => setErrorCell(null), 500)
+
+      // Count errors in all modes
+      const newErrorCount = errorCount + 1
+      setErrorCount(newErrorCount)
+
+      if (numErrors > 0 && newErrorCount >= numErrors) {
+        setGameLost(true)
+      }
+      return
+    }
+
     // Already found or not a difference
     if (gameState.found.has(key) || !gameState.differences.has(key)) return
 
     const newFound = new Set(gameState.found)
     newFound.add(key)
+
+    const isLastDifference = newFound.size === gameState.differences.size
+
+    if (gameMode === "TimeChallenge") {
+      setTimeRemaining((prev) => prev + 3)
+    }
+
+    if (!isLastDifference && useSounds && audio) {
+      audio.currentTime = 0
+      audio.play().catch(() => {
+        // Silently ignore errors if audio can't play
+      })
+    }
+
     setGameState({ ...gameState, found: newFound })
     setFoundCount(newFound.size)
 
-    if (newFound.size === gameState.differences.size) {
+    if (isLastDifference) {
+      if (useSounds && victoryAudio) {
+        victoryAudio.currentTime = 0
+        victoryAudio.play().catch(() => {
+          // Silently ignore errors if audio can't play
+        })
+      }
       setGameWon(true)
     }
   }
 
   const handlePlayAgain = () => {
     setGameWon(false)
+    setGameLost(false)
     setFoundCount(0)
-    // Trigger re-initialization by updating game state
+    setErrorCount(0)
+    setTimeRemaining(timeLimit)
     const matrix1: Symbol[][] = Array.from({ length: size }, () =>
       Array.from({ length: size }, () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]),
     )
@@ -201,14 +285,43 @@ export default function GameContent() {
       <div className="space-y-6 mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 px-2 lg:px-4">
-          <h1 className="text-2xl font-bold text-primary">Find the Differences</h1>
-          <p className="text-lg text-foreground mx-4">
-            Found: <span className="font-bold text-accent">{foundCount}</span> / {gameState.differences.size}
-          </p>
           <Button onClick={() => router.push("/")} variant="outline">
-            ⚙️
+            🏠
           </Button>
+          {gameMode === "TimeChallenge" && (
+            <div className="text-xl font-bold text-foreground">
+              ⏱️ {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, "0")}
+            </div>
+          )}
         </div>
+
+        {/* Differences Display */}
+        <div className="flex justify-center px-2 lg:px-4">
+          <div className="flex flex-wrap gap-2 items-center justify-center max-w-lg">
+            {Array.from({ length: gameState.differences.size }).map((_, idx) => (
+              <div
+                key={idx}
+                className={`w-6 h-6 rounded-full transition-colors border-2 border-solid border-green-500 ${idx < foundCount ? "bg-accent" : "bg-white"}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Errors Display - Show in Normal and Time Challenge modes */}
+        {(gameMode === "Normal" || gameMode === "TimeChallenge") && numErrors > 0 && (
+          <div className="flex justify-center px-2 lg:px-4">
+            <div className="flex flex-wrap gap-2 items-center justify-center max-w-lg">
+              {Array.from({ length: numErrors }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors ${idx < errorCount ? "text-red-600 bg-red-100 border-2 border-red-600" : "text-gray-400 bg-gray-100 border-2 border-gray-400"} rounded`}
+                >
+                  X
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <Dialog open={gameWon} onOpenChange={setGameWon}>
           <DialogContent
@@ -218,14 +331,44 @@ export default function GameContent() {
           >
             <DialogHeader className="text-center">
               <DialogTitle className="text-2xl text-foreground justify-center text-center">🎉 You Won! 🎉</DialogTitle>
-              <DialogDescription className="text-foreground text-center">You found all the differences!</DialogDescription>
+              <DialogDescription className="text-foreground text-center">
+                You found all the differences!
+              </DialogDescription>
             </DialogHeader>
             <div className="flex gap-3 justify-center pt-4">
               <Button onClick={handlePlayAgain} className="hover:bg-primary/90 bg-secondary">
                 Play Again
               </Button>
               <Button onClick={() => router.push("/")} className="hover:bg-secondary/90 bg-chart-4">
-                Close
+                Home
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Game Over Dialog - Shows for Zen, Normal mode errors, or Time Challenge timeout */}
+        <Dialog open={gameLost} onOpenChange={setGameLost}>
+          <DialogContent
+            className="bg-gradient-to-r from-red-400 to-red-500 border-2 text-center border-red-500"
+            onPointerDownOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-2xl text-foreground justify-center text-center">
+                💔 Game Over! 💔
+              </DialogTitle>
+              <DialogDescription className="text-foreground text-center">
+                {gameMode === "TimeChallenge" && timeRemaining <= 0
+                  ? "Time's up!"
+                  : "You reached the maximum number of errors!"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-3 justify-center pt-4">
+              <Button onClick={handlePlayAgain} className="hover:bg-primary/90 bg-secondary">
+                Play Again
+              </Button>
+              <Button onClick={() => router.push("/")} className="hover:bg-secondary/90 bg-chart-4">
+                Home
               </Button>
             </div>
           </DialogContent>
@@ -279,6 +422,7 @@ export default function GameContent() {
                     const key = `${rowIdx}-${colIdx}`
                     const isFound = gameState.found.has(key)
                     const isDifference = gameState.differences.has(key)
+                    const isError = errorCell === key
 
                     return (
                       <button
@@ -286,9 +430,11 @@ export default function GameContent() {
                         onClick={() => handleCellClick(rowIdx, colIdx)}
                         disabled={isFound}
                         className={`flex items-center justify-center rounded-lg font-bold transition-all border-0 leading-none ${
-                          isFound
-                            ? "bg-accent text-accent-foreground ring-2 ring-accent shadow-lg scale-105"
-                            : "bg-card border-2 border-border text-foreground hover:border-primary hover:shadow-md cursor-pointer"
+                          isError
+                            ? "bg-red-500 text-red-foreground animate-error-flash"
+                            : isFound
+                              ? "bg-accent text-accent-foreground border-2 border-accent shadow-lg scale-105"
+                              : "bg-card border-2 border-border text-foreground hover:border-primary hover:shadow-md cursor-pointer"
                         }`}
                         style={{
                           width: `${gridWidth}px`,
