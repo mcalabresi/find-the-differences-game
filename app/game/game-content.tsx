@@ -74,8 +74,9 @@ export default function GameContent() {
   const useNumbers = searchParams.get("numbers") !== "false"
   const useEmojis = searchParams.get("emojis") !== "false"
   const useSounds = searchParams.get("sounds") !== "false"
-  const gameMode = (searchParams.get("mode") || "Normal") as "Zen" | "Normal" | "TimeChallenge"
+  const gameMode = (searchParams.get("mode") || "Normal") as "Zen" | "Normal" | "TimeChallenge" | "Journey"
   const timeLimit = Number.parseInt(searchParams.get("timeLimit") || "60")
+  const level = Number.parseInt(searchParams.get("level") || "0") // added level parameter
 
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [foundCount, setFoundCount] = useState(0)
@@ -279,6 +280,12 @@ export default function GameContent() {
     })
   }
 
+  const handleNextLevel = () => {
+    const currentLevel = Math.max(1, level)
+    localStorage.setItem("journeyCurrentLevel", (currentLevel + 1).toString())
+    router.push("/journey")
+  }
+
   if (!gameState) return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10" />
 
   return (
@@ -405,30 +412,56 @@ export default function GameContent() {
           </div>
 
           {/* Dialogs */}
-          <Dialog open={gameWon} onOpenChange={setGameWon}>
-            <DialogContent
-              className="bg-gradient-to-r from-green-300 to-green-400 border-2 text-center border-green-400"
-              onPointerDownOutside={(e) => e.preventDefault()}
-              onEscapeKeyDown={(e) => e.preventDefault()}
-            >
-              <DialogHeader className="text-center">
-                <DialogTitle className="text-2xl text-foreground justify-center text-center">
-                  🎉 You Won! 🎉
-                </DialogTitle>
-                <DialogDescription className="text-foreground text-center">
-                  You found all the differences!
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex gap-3 justify-center pt-4">
-                <Button onClick={handlePlayAgain} className="hover:bg-primary/90 bg-secondary">
-                  Play Again
-                </Button>
-                <Button onClick={() => router.push("/")} className="hover:bg-secondary/90 bg-chart-4">
-                  Home
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {level > 0 && gameWon && (
+            <Dialog open={gameWon} onOpenChange={setGameWon}>
+              <DialogContent
+                className="bg-gradient-to-r from-green-300 to-green-400 border-2 text-center border-green-400"
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+              >
+                <DialogHeader className="text-center">
+                  <DialogTitle className="text-2xl text-foreground justify-center text-center">
+                    Level {level} Completed!
+                  </DialogTitle>
+                  <DialogDescription className="text-foreground text-center">
+                    Great job! Ready for the next challenge?
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex gap-3 justify-center pt-4">
+                  <Button onClick={handleNextLevel} className="hover:bg-primary/90 bg-secondary text-base px-8 py-6">
+                    Next
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {level === 0 && gameWon && (
+            <Dialog open={gameWon} onOpenChange={setGameWon}>
+              <DialogContent
+                className="bg-gradient-to-r from-green-300 to-green-400 border-2 text-center border-green-400"
+                onPointerDownOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+              >
+                <DialogHeader className="text-center">
+                  <DialogTitle className="text-2xl text-foreground justify-center text-center">
+                    🎉 You Won! 🎉
+                  </DialogTitle>
+                  <DialogDescription className="text-foreground text-center">
+                    You found all the differences!
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex gap-3 justify-center pt-4">
+                  <Button onClick={handlePlayAgain} className="hover:bg-primary/90 bg-secondary">
+                    Play Again
+                  </Button>
+                  <Button onClick={() => router.push("/")} className="hover:bg-secondary/90 bg-chart-4">
+                    Home
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
           <Dialog open={gameLost} onOpenChange={setGameLost}>
             <DialogContent

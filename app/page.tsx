@@ -16,7 +16,7 @@ export default function Home() {
   const [useEmojis, setUseEmojis] = useState(true)
   const [useSounds, setUseSounds] = useState(true)
   const [numErrors, setNumErrors] = useState(3)
-  const [gameMode, setGameMode] = useState<"Zen" | "Normal" | "TimeChallenge">("Normal")
+  const [gameMode, setGameMode] = useState<"Zen" | "Normal" | "TimeChallenge" | "Journey">("Normal")
   const [timeLimit, setTimeLimit] = useState(60)
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function Home() {
     if (savedEmojis !== null) setUseEmojis(JSON.parse(savedEmojis))
     if (savedSounds !== null) setUseSounds(JSON.parse(savedSounds))
     if (savedErrors) setNumErrors(Number.parseInt(savedErrors))
-    if (savedGameMode) setGameMode(savedGameMode as "Zen" | "Normal" | "TimeChallenge")
+    if (savedGameMode) setGameMode(savedGameMode as "Zen" | "Normal" | "TimeChallenge" | "Journey")
     if (savedTimeLimit) setTimeLimit(Number.parseInt(savedTimeLimit))
   }, [])
 
@@ -82,6 +82,10 @@ export default function Home() {
   const enabledSymbolCount = [useLetters, useNumbers, useEmojis].filter(Boolean).length
 
   const handlePlay = () => {
+    if (gameMode === "Journey") {
+      router.push("/journey")
+      return
+    }
     router.push(
       `/game?size=${matrixSize}&differences=${numDifferences}&letters=${useLetters}&numbers=${useNumbers}&emojis=${useEmojis}&sounds=${useSounds}&errors=${numErrors}&mode=${gameMode}&timeLimit=${timeLimit}`,
     )
@@ -101,18 +105,24 @@ export default function Home() {
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground">Game Mode</label>
-              <div className="flex gap-2">
-                {["Zen", "Normal", "TimeChallenge"].map((mode) => (
+              <div className="flex gap-2 flex-wrap justify-center">
+                {["Zen", "Normal", "TimeChallenge", "Journey"].map((mode) => (
                   <button
                     key={mode}
-                    onClick={() => setGameMode(mode as "Zen" | "Normal" | "TimeChallenge")}
-                    className={`flex-1 py-2 rounded-lg font-medium transition-all ${
+                    onClick={() => setGameMode(mode as "Zen" | "Normal" | "TimeChallenge" | "Journey")}
+                    className={`py-2 px-3 rounded-lg font-medium transition-all ${
                       gameMode === mode
                         ? "bg-green-500 text-white shadow-lg"
                         : "bg-white text-foreground border-2 border-gray-300 hover:border-gray-400"
                     }`}
                   >
-                    {mode === "TimeChallenge" ? "⏲️ Time Challenge" : (mode === "Zen" ? "😎 Zen" : mode) }
+                    {mode === "TimeChallenge"
+                      ? "⏲️ TC"
+                      : mode === "Zen"
+                        ? "😎 Zen"
+                        : mode === "Journey"
+                          ? "🏔️ Journey"
+                          : mode}
                   </button>
                 ))}
               </div>
@@ -181,7 +191,7 @@ export default function Home() {
               <label className="block text-sm font-medium text-foreground">Number of Errors</label>
               <input
                 type="range"
-                min="0"
+                min="1"
                 max="10"
                 value={numErrors}
                 onChange={(e) => setNumErrors(Number.parseInt(e.target.value))}
