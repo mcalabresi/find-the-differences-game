@@ -3,218 +3,90 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const LEVEL_COORDINATES = [
-  {
-    level: 1,
-    xCenter: 393,
-    yCenter: 905,
-  },
-  {
-    level: 2,
-    xCenter: 520,
-    yCenter: 868,
-  },
-  {
-    level: 3,
-    xCenter: 538,
-    yCenter: 813,
-  },
-  {
-    level: 4,
-    xCenter: 463,
-    yCenter: 792,
-  },
-  {
-    level: 5,
-    xCenter: 400,
-    yCenter: 790,
-  },
-  {
-    level: 6,
-    xCenter: 343,
-    yCenter: 786,
-  },
-  {
-    level: 7,
-    xCenter: 297,
-    yCenter: 745,
-  },
-  {
-    level: 8,
-    xCenter: 246,
-    yCenter: 743,
-  },
-  {
-    level: 9,
-    xCenter: 312,
-    yCenter: 701,
-  },
-  {
-    level: 10,
-    xCenter: 375,
-    yCenter: 701,
-  },
-  {
-    level: 11,
-    xCenter: 453,
-    yCenter: 693,
-  },
-  {
-    level: 12,
-    xCenter: 510,
-    yCenter: 690,
-  },
-  {
-    level: 13,
-    xCenter: 499,
-    yCenter: 651,
-  },
-  {
-    level: 14,
-    xCenter: 426,
-    yCenter: 634,
-  },
-  {
-    level: 15,
-    xCenter: 368,
-    yCenter: 638,
-  },
-  {
-    level: 16,
-    xCenter: 300,
-    yCenter: 632,
-  },
-  {
-    level: 17,
-    xCenter: 243,
-    yCenter: 597,
-  },
-  {
-    level: 18,
-    xCenter: 295,
-    yCenter: 566,
-  },
-  {
-    level: 19,
-    xCenter: 353,
-    yCenter: 542,
-  },
-  {
-    level: 20,
-    xCenter: 399,
-    yCenter: 538,
-  },
-  {
-    level: 21,
-    xCenter: 450,
-    yCenter: 534,
-  },
-  {
-    level: 22,
-    xCenter: 497,
-    yCenter: 476,
-  },
-  {
-    level: 23,
-    xCenter: 443,
-    yCenter: 445,
-  },
-  {
-    level: 24,
-    xCenter: 380,
-    yCenter: 448,
-  },
-  {
-    level: 25,
-    xCenter: 310,
-    yCenter: 441,
-  },
-  {
-    level: 26,
-    xCenter: 266,
-    yCenter: 403,
-  },
-  {
-    level: 27,
-    xCenter: 314,
-    yCenter: 365,
-  },
-  {
-    level: 28,
-    xCenter: 374,
-    yCenter: 362,
-  },
-  {
-    level: 29,
-    xCenter: 437,
-    yCenter: 348,
-  },
-  {
-    level: 30,
-    xCenter: 490,
-    yCenter: 321,
-  },
-  {
-    level: 31,
-    xCenter: 531,
-    yCenter: 277,
-  },
-  {
-    level: 32,
-    xCenter: 439,
-    yCenter: 243,
-  },
-  {
-    level: 33,
-    xCenter: 386,
-    yCenter: 233,
-  },
-  {
-    level: 34,
-    xCenter: 341,
-    yCenter: 231,
-  },
-  {
-    level: 35,
-    xCenter: 291,
-    yCenter: 224,
-  },
-  {
-    level: 36,
-    xCenter: 246,
-    yCenter: 195,
-  },
-  {
-    level: 37,
-    xCenter: 297,
-    yCenter: 138,
-  },
-  {
-    level: 38,
-    xCenter: 358,
-    yCenter: 158,
-  },
-  {
-    level: 39,
-    xCenter: 421,
-    yCenter: 125,
-  },
-  {
-    level: 40,
-    xCenter: 393,
-    yCenter: 78,
-  },
-]
+// Level coordinates for each section
+const SECTION_COORDINATES = {
+  1: [
+    // Levels 1-10: Beach section - centered horizontally, spread vertically
+    { level: 1, xCenter: 365, yCenter: 950 },
+    { level: 2, xCenter: 365, yCenter: 850 },
+    { level: 3, xCenter: 365, yCenter: 750 },
+    { level: 4, xCenter: 365, yCenter: 650 },
+    { level: 5, xCenter: 365, yCenter: 550 },
+    { level: 6, xCenter: 365, yCenter: 450 },
+    { level: 7, xCenter: 365, yCenter: 350 },
+    { level: 8, xCenter: 365, yCenter: 250 },
+    { level: 9, xCenter: 365, yCenter: 150 },
+    { level: 10, xCenter: 365, yCenter: 50 },
+  ],
+  2: [
+    // Levels 11-20: Forest section - centered horizontally, spread vertically
+    { level: 11, xCenter: 365, yCenter: 950 },
+    { level: 12, xCenter: 365, yCenter: 850 },
+    { level: 13, xCenter: 365, yCenter: 750 },
+    { level: 14, xCenter: 365, yCenter: 650 },
+    { level: 15, xCenter: 365, yCenter: 550 },
+    { level: 16, xCenter: 365, yCenter: 450 },
+    { level: 17, xCenter: 365, yCenter: 350 },
+    { level: 18, xCenter: 365, yCenter: 250 },
+    { level: 19, xCenter: 365, yCenter: 150 },
+    { level: 20, xCenter: 365, yCenter: 50 },
+  ],
+  3: [
+    // Levels 21-30: Deep forest section - centered horizontally, spread vertically
+    { level: 21, xCenter: 365, yCenter: 950 },
+    { level: 22, xCenter: 365, yCenter: 850 },
+    { level: 23, xCenter: 365, yCenter: 750 },
+    { level: 24, xCenter: 365, yCenter: 650 },
+    { level: 25, xCenter: 365, yCenter: 550 },
+    { level: 26, xCenter: 365, yCenter: 450 },
+    { level: 27, xCenter: 365, yCenter: 350 },
+    { level: 28, xCenter: 365, yCenter: 250 },
+    { level: 29, xCenter: 365, yCenter: 150 },
+    { level: 30, xCenter: 365, yCenter: 50 },
+  ],
+  4: [
+    // Levels 31-40: Mountain peak section - centered horizontally, spread vertically
+    { level: 31, xCenter: 365, yCenter: 950 },
+    { level: 32, xCenter: 365, yCenter: 850 },
+    { level: 33, xCenter: 365, yCenter: 750 },
+    { level: 34, xCenter: 365, yCenter: 650 },
+    { level: 35, xCenter: 365, yCenter: 550 },
+    { level: 36, xCenter: 365, yCenter: 450 },
+    { level: 37, xCenter: 365, yCenter: 350 },
+    { level: 38, xCenter: 365, yCenter: 250 },
+    { level: 39, xCenter: 365, yCenter: 150 },
+    { level: 40, xCenter: 365, yCenter: 50 },
+  ],
+}
+
+const SECTION_IMAGES = {
+  1: "/images/levels1_10.png",
+  2: "/images/levels11_20.png",
+  3: "/images/levels21_30.png",
+  4: "/images/levels31_40.png",
+}
+
+const SECTION_TITLES = {
+  1: "Beach Journey",
+  2: "Forest Adventure",
+  3: "Mountain Trail",
+  4: "Peak Challenge",
+}
 
 export default function JourneyPage() {
   const router = useRouter()
   const [currentLevel, setCurrentLevel] = useState(1)
+  const [currentSection, setCurrentSection] = useState(1)
 
   useEffect(() => {
     const savedLevel = localStorage.getItem("journeyCurrentLevel")
     if (savedLevel) {
-      setCurrentLevel(Number.parseInt(savedLevel))
+      const level = Number.parseInt(savedLevel)
+      setCurrentLevel(level)
+      // Determine initial section based on current level
+      setCurrentSection(Math.ceil(level / 10))
     }
   }, [])
 
@@ -322,59 +194,101 @@ export default function JourneyPage() {
     router.push("/")
   }
 
+  // Navigation functions for section switching
+  const goToPreviousSection = () => {
+    if (currentSection > 1) {
+      setCurrentSection(currentSection - 1)
+    }
+  }
+
+  const goToNextSection = () => {
+    if (currentSection < 4) {
+      setCurrentSection(currentSection + 1)
+    }
+  }
+
+  const sectionLevels = SECTION_COORDINATES[currentSection as keyof typeof SECTION_COORDINATES] || []
+  const sectionImage = SECTION_IMAGES[currentSection as keyof typeof SECTION_IMAGES]
+  const sectionTitle = SECTION_TITLES[currentSection as keyof typeof SECTION_TITLES]
+
+  // Determine if buttons should be enabled
+  const canGoPrevious = currentSection > 1
+  const canGoNext = currentSection < 4
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
-      <div className="flex flex-col" style={{ width: "730px", maxWidth: "calc(100vw - 32px)", height: "100vh" }}>
-        <div className="sticky top-0 z-10 flex justify-end p-2 bg-gradient-to-b from-primary/10 to-transparent">
-          <Button onClick={handleHome} variant="outline" size="sm">
-            🏠 Home
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex flex-col items-center justify-center">
+      <div className="sticky top-0 z-10 w-full bg-background/95 backdrop-blur-sm border-b border-primary/20">
+        <div className="flex items-center justify-center gap-4 p-3 max-w-2xl mx-auto">
+          <Button
+            onClick={goToPreviousSection}
+            disabled={!canGoPrevious}
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 bg-transparent"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+
+          <Button onClick={handleHome} variant="outline" size="icon" className="h-10 w-10 bg-transparent">
+            🏠
+          </Button>
+
+          <Button
+            onClick={goToNextSection}
+            disabled={!canGoNext}
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 bg-transparent"
+          >
+            <ChevronRight className="h-6 w-6" />
           </Button>
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div
-            className="journey-container relative bg-cover bg-center mx-0"
-            style={{
-              backgroundImage: `url('/images/game-levels-2.png')`,
-              backgroundSize: "cover",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "top center",
-              width: "100%",
-              aspectRatio: "730 / 1010",
-            }}
-          >
-            {/* Level Buttons */}
-            {LEVEL_COORDINATES.map(({ level, xCenter, yCenter }) => {
-              const isCompleted = level < currentLevel
-              const isAvailable = level <= currentLevel
-              const buttonSize = 32
+      {/* Map container with scrollable content */}
+      <div className="flex-1 overflow-y-auto w-full max-w-2xl flex flex-col items-center p-4">
+        <div
+          className="relative w-full bg-cover bg-center rounded-lg border-2 border-primary/20"
+          style={{
+            backgroundImage: `url('${sectionImage}')`,
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "top center",
+            aspectRatio: "730 / 1010",
+            minHeight: "600px",
+          }}
+        >
+          {/* Render level buttons for current section */}
+          {sectionLevels.map(({ level, xCenter, yCenter }) => {
+            const isCompleted = level < currentLevel
+            const isAvailable = level <= currentLevel
+            const buttonSize = 50
 
-              return (
-                <button
-                  key={level}
-                  onClick={() => handleLevelClick(level)}
-                  disabled={!isAvailable}
-                  className={`absolute rounded-full font-bold transition-all transform -translate-x-1/2 -translate-y-1/2 border-2 flex items-center justify-center text-xs ${
-                    isCompleted
-                      ? "bg-green-500 border-green-600 text-white shadow-lg scale-110 hover:scale-125"
-                      : isAvailable
-                        ? "bg-blue-500 border-blue-600 text-white shadow-lg hover:scale-110 cursor-pointer"
-                        : "bg-white border-gray-400 text-gray-700 cursor-not-allowed opacity-60" // changed disabled button background from gray-400 to white
-                  }`}
-                  style={{
-                    left: `${(xCenter / 730) * 100}%`,
-                    top: `${(yCenter / 1010) * 100}%`,
-                    width: `${buttonSize}px`,
-                    height: `${buttonSize}px`,
-                    fontSize: "12px",
-                  }}
-                  title={`Level ${level}${isCompleted ? " (Completed)" : isAvailable ? " (Available)" : " (Locked)"}`}
-                >
-                  {level}
-                </button>
-              )
-            })}
-          </div>
+            return (
+              <button
+                key={level}
+                onClick={() => handleLevelClick(level)}
+                disabled={!isAvailable}
+                className={`absolute rounded-full font-bold transition-all transform -translate-x-1/2 -translate-y-1/2 border-2 flex items-center justify-center text-xs ${
+                  isCompleted
+                    ? "bg-green-500 border-green-600 text-white shadow-lg scale-110 hover:scale-125"
+                    : isAvailable
+                      ? "bg-blue-500 border-blue-600 text-white shadow-lg hover:scale-110 cursor-pointer"
+                      : "bg-white border-gray-400 text-gray-700 cursor-not-allowed opacity-60"
+                }`}
+                style={{
+                  left: `${(xCenter / 730) * 100}%`,
+                  top: `${(yCenter / 1010) * 100}%`,
+                  width: `${buttonSize}px`,
+                  height: `${buttonSize}px`,
+                  fontSize: "12px",
+                }}
+                title={`Level ${level}${isCompleted ? " (Completed)" : isAvailable ? " (Available)" : " (Locked)"}`}
+              >
+                {level}
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
