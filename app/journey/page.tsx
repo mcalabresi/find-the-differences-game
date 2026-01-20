@@ -9,55 +9,55 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 const SECTION_COORDINATES = {
   1: [
     // Levels 1-10: Beach section - centered horizontally, spread vertically
-    { level: 1, xCenter: 365, yCenter: 950 },
-    { level: 2, xCenter: 365, yCenter: 850 },
-    { level: 3, xCenter: 365, yCenter: 750 },
-    { level: 4, xCenter: 365, yCenter: 650 },
-    { level: 5, xCenter: 365, yCenter: 550 },
-    { level: 6, xCenter: 365, yCenter: 450 },
-    { level: 7, xCenter: 365, yCenter: 350 },
-    { level: 8, xCenter: 365, yCenter: 250 },
-    { level: 9, xCenter: 365, yCenter: 150 },
-    { level: 10, xCenter: 365, yCenter: 50 },
+    { level: 1, xCenter: 200, yCenter: 950 },
+    { level: 2, xCenter: 400, yCenter: 850 },
+    { level: 3, xCenter: 600, yCenter: 750 },
+    { level: 4, xCenter: 400, yCenter: 650 },
+    { level: 5, xCenter: 200, yCenter: 550 },
+    { level: 6, xCenter: 400, yCenter: 450 },
+    { level: 7, xCenter: 600, yCenter: 350 },
+    { level: 8, xCenter: 400, yCenter: 250 },
+    { level: 9, xCenter: 200, yCenter: 150 },
+    { level: 10, xCenter: 400, yCenter: 50 },
   ],
   2: [
     // Levels 11-20: Forest section - centered horizontally, spread vertically
-    { level: 11, xCenter: 365, yCenter: 950 },
-    { level: 12, xCenter: 365, yCenter: 850 },
-    { level: 13, xCenter: 365, yCenter: 750 },
-    { level: 14, xCenter: 365, yCenter: 650 },
-    { level: 15, xCenter: 365, yCenter: 550 },
-    { level: 16, xCenter: 365, yCenter: 450 },
-    { level: 17, xCenter: 365, yCenter: 350 },
-    { level: 18, xCenter: 365, yCenter: 250 },
-    { level: 19, xCenter: 365, yCenter: 150 },
-    { level: 20, xCenter: 365, yCenter: 50 },
+    { level: 11, xCenter: 200, yCenter: 950 },
+    { level: 12, xCenter: 400, yCenter: 850 },
+    { level: 13, xCenter: 600, yCenter: 750 },
+    { level: 14, xCenter: 400, yCenter: 650 },
+    { level: 15, xCenter: 200, yCenter: 550 },
+    { level: 16, xCenter: 400, yCenter: 450 },
+    { level: 17, xCenter: 600, yCenter: 350 },
+    { level: 18, xCenter: 400, yCenter: 250 },
+    { level: 19, xCenter: 200, yCenter: 150 },
+    { level: 20, xCenter: 400, yCenter: 50 },
   ],
   3: [
     // Levels 21-30: Deep forest section - centered horizontally, spread vertically
-    { level: 21, xCenter: 365, yCenter: 950 },
-    { level: 22, xCenter: 365, yCenter: 850 },
-    { level: 23, xCenter: 365, yCenter: 750 },
-    { level: 24, xCenter: 365, yCenter: 650 },
-    { level: 25, xCenter: 365, yCenter: 550 },
-    { level: 26, xCenter: 365, yCenter: 450 },
-    { level: 27, xCenter: 365, yCenter: 350 },
-    { level: 28, xCenter: 365, yCenter: 250 },
-    { level: 29, xCenter: 365, yCenter: 150 },
-    { level: 30, xCenter: 365, yCenter: 50 },
+    { level: 21, xCenter: 200, yCenter: 950 },
+    { level: 22, xCenter: 400, yCenter: 850 },
+    { level: 23, xCenter: 600, yCenter: 750 },
+    { level: 24, xCenter: 400, yCenter: 650 },
+    { level: 25, xCenter: 200, yCenter: 550 },
+    { level: 26, xCenter: 400, yCenter: 450 },
+    { level: 27, xCenter: 600, yCenter: 350 },
+    { level: 28, xCenter: 400, yCenter: 250 },
+    { level: 29, xCenter: 200, yCenter: 150 },
+    { level: 30, xCenter: 400, yCenter: 50 },
   ],
   4: [
     // Levels 31-40: Mountain peak section - centered horizontally, spread vertically
-    { level: 31, xCenter: 365, yCenter: 950 },
-    { level: 32, xCenter: 365, yCenter: 850 },
-    { level: 33, xCenter: 365, yCenter: 750 },
-    { level: 34, xCenter: 365, yCenter: 650 },
-    { level: 35, xCenter: 365, yCenter: 550 },
-    { level: 36, xCenter: 365, yCenter: 450 },
-    { level: 37, xCenter: 365, yCenter: 350 },
-    { level: 38, xCenter: 365, yCenter: 250 },
-    { level: 39, xCenter: 365, yCenter: 150 },
-    { level: 40, xCenter: 365, yCenter: 50 },
+    { level: 31, xCenter: 200, yCenter: 950 },
+    { level: 32, xCenter: 400, yCenter: 850 },
+    { level: 33, xCenter: 600, yCenter: 750 },
+    { level: 34, xCenter: 400, yCenter: 650 },
+    { level: 35, xCenter: 200, yCenter: 550 },
+    { level: 36, xCenter: 400, yCenter: 450 },
+    { level: 37, xCenter: 600, yCenter: 350 },
+    { level: 38, xCenter: 400, yCenter: 250 },
+    { level: 39, xCenter: 200, yCenter: 150 },
+    { level: 40, xCenter: 400, yCenter: 50 },
   ],
 }
 
@@ -262,14 +262,14 @@ export default function JourneyPage() {
           {sectionLevels.map(({ level, xCenter, yCenter }) => {
             const isCompleted = level < currentLevel
             const isAvailable = level <= currentLevel
-            const buttonSize = 50
+            const buttonSize = 70
 
             return (
               <button
                 key={level}
                 onClick={() => handleLevelClick(level)}
                 disabled={!isAvailable}
-                className={`absolute rounded-full font-bold transition-all transform -translate-x-1/2 -translate-y-1/2 border-2 flex items-center justify-center text-xs ${
+                className={`absolute rounded-full font-bold transition-all transform -translate-x-1/2 -translate-y-1/2 border-2 flex items-center justify-center text-2xl ${
                   isCompleted
                     ? "bg-green-500 border-green-600 text-white shadow-lg scale-110 hover:scale-125"
                     : isAvailable
@@ -281,7 +281,6 @@ export default function JourneyPage() {
                   top: `${(yCenter / 1010) * 100}%`,
                   width: `${buttonSize}px`,
                   height: `${buttonSize}px`,
-                  fontSize: "12px",
                 }}
                 title={`Level ${level}${isCompleted ? " (Completed)" : isAvailable ? " (Available)" : " (Locked)"}`}
               >
